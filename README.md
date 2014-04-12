@@ -5,7 +5,7 @@ Web Builder 10.0 is an **Prototype** for OpenText Content Server 10.0 Builder To
 
 Features
 --------
-> - Viewing OScript Code from Content Server Wen Interface.
+> - Viewing OScript Code from Content Server Web Interface.
 > - Multi Tab Interface
 > - Exporting OSpace
 > - Viewing Modules installed on Content Server.

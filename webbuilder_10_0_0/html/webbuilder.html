@@ -18,6 +18,7 @@
     <script type="text/javascript" src="`support`js/jquery.mousewheel.js"></script>
     <script type="text/javascript" src="`support`js/metro.min.js"></script>
     <script type="text/javascript" src="`support`js/spin.js"></script>
+    <script type="text/javascript" src="`support`js/github.info.js"></script>
 
     <!--<script type="text/javascript" src="`support`metroui/js/metro-tab-control.js"></script>-->
 
@@ -51,7 +52,29 @@
             zIndex: 2e9, // The z-index (defaults to 2000000000)
             //top: 'auto', // Top position relative to parent in px
             //left: 'auto' // Left position relative to parent in px
-        };               
+        };
+
+        $(function () {
+            if (document.location.host.indexOf('.dev') > -1) return;
+
+            var repo = "kishorejangid/WebBuilder";
+
+            $.ajax({
+                url: 'https://api.github.com/repos/' + repo,
+                dataType: 'jsonp',
+
+                error: function (result) {
+
+                },
+                success: function (results) {
+                    var repo = results.data;
+                    var watchers = repo.watchers;
+                    var forks = repo.forks;
+
+                    $(".github-watchers").html(watchers);                    
+                }
+            })
+        });
 
         $(function () {                        
             builder = $.builder({ baseurl: '`otcsUrl`',supporturl:'`support`' });
