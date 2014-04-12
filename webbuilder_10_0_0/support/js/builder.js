@@ -156,7 +156,6 @@
             return false;
         }
 
-
         function addTab(feature, data) {
             console.log('Adding new tab.')
             var tabId = 'tab_' + feature.data().parent + '_' + feature.attr('id');
@@ -239,7 +238,6 @@
             $.jstree.reference('#modules').select_node(node);
             activateTab($(this).attr('href'));
         });
-
 
         $('#builder-tabs ul').on("click", "a span span.icon-cancel", function (e) {
 
@@ -467,7 +465,6 @@
             return $node;
         }
 
-
         function unlockOSpace($node) {
             var url = settings.baseurl + '?func=wb.cmd.ospace.unlock&ospace=' + $node.text;
             var uSpinner;            
@@ -502,6 +499,45 @@
                 uSpinner.stop();
             })
             return $node;
+        }
+
+        function showOSpaceProperties($node)
+        {
+            var url = settings.baseurl + '?func=wb.cmd.ospace.Properties&ospace=' + $node.text;
+            var uSpinner;
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                beforeSend: function () {
+                    var target = document.getElementById('leftsidebar');
+                    uSpinner = new Spinner(spinOpt).spin(target);
+                }
+            }).done(function (data) {
+                if (data != undefined) {
+                    if (data.ok) {
+                        console.log(data);
+                        $.Dialog({
+                            shadow: true,
+                            overlay: true,
+                            icon: '<img src="' + $node.original.icon + '"/>',
+                            title: $node.original.ospace + ' Properties',
+                            width: 500,
+                            height: 200,
+                            padding: 10,
+                            content: '<table><tr><th style="text-align:left;padding-right:10px;">OSpace</th><td>' + $node.original.ospace + '</td></tr><tr><th style="text-align:left;padding-right:10px;">Location</th><td>' + data.Location + '</td></tr><tr><th style="text-align:left;padding-right:10px;">Size</th><td>' + data.Size + '</td></tr><tr><th style="text-align:left;padding-right:10px;">Dependencies</th><td>' + data.Dependencies + '</td></tr></table>'
+                        });
+                    }
+                    else {
+                        $.Notify({
+                            caption: "Error",
+                            content: data.errMsg,
+                            style: { 'background': 'red', 'color': '#fff' }
+                        });
+                    }
+                }
+            }).complete(function () {
+                uSpinner.stop();
+            })            
         }
 
         var Builder = {
@@ -647,6 +683,7 @@
                                                 },
                                             }
                                         },
+                                        _disabled: !isLocked($node)
                                     },
                                     "NewChild": {
                                         "separator_before": false,
@@ -654,7 +691,8 @@
                                         "label": "New Child",
                                         "action": function (obj) {
                                             tree.delete_node($node);
-                                        }
+                                        },
+                                        _disabled: !isLocked($node)
                                     },
                                     "NewOrphan": {
                                         "separator_before": false,
@@ -670,7 +708,8 @@
                                         "label": "Delete",
                                         "action": function (obj) {
                                             tree.delete_node($node);
-                                        }
+                                        },
+                                        _disabled: !isLocked($node)
                                     },
                                     "Rename": {
                                         "separator_before": false,
@@ -678,7 +717,8 @@
                                         "label": "Rename",
                                         "action": function (obj) {
                                             tree.delete_node($node);
-                                        }
+                                        },
+                                        _disabled: !isLocked($node)
                                     },
                                     "AddToGlobals": {
                                         "separator_before": true,
@@ -686,7 +726,8 @@
                                         "label": "Add To Globals",
                                         "action": function (obj) {
                                             tree.delete_node($node);
-                                        }
+                                        },
+                                        _disabled: !isLocked($node)
                                     }
                                 }                                
                             }
@@ -703,7 +744,10 @@
                                     "Properties": {
                                         "separator_before": false,
                                         "separator_after": false,
-                                        "label": "Properties"                                        
+                                        "label": "Properties",
+                                        "action": function () {
+                                            showOSpaceProperties($node);
+                                        }
                                     },
                                     "Search": {
                                         "separator_before": false,
