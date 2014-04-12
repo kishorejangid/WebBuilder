@@ -21,9 +21,10 @@ Supported Browsers
 
 > - Microsoft Internet Explorer 10 & above
 > - Google Chrome
-< - Mozilla Firefox
+> - Mozilla Firefox
 
-## Screen Shots Samples
+Screen Shots Samples
+--------------------
 
 ![Web Builder](/ScreenShots/WebBuilder.png "Content Server Web Builder")
 
