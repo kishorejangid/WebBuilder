@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    ;String support = .ModImg()
+    ;String htmlPrefix = .ModHTMLPrefix()
+    ;String builderUrl = .Url() + '?func=' + .Func()
+    ;String otcsUrl = .Url();
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Content Server Web Builder</title>
+
+    <!--Metro UI-->
+    <link rel="stylesheet" type="text/css" href="`support`metroui/css/metro-bootstrap.css" />
+    <!--<link rel="stylesheet" type="text/css" href="`support`metroui/css/metro-bootstrap-responsive.css" />-->
+    <link rel="stylesheet" type="text/css" href="`support`metroui/css/iconFont.css" />
+
+    <script type="text/javascript" src="`support`js/jquery-2.1.0.js"></script>
+    <script type="text/javascript" src="`support`js/jquery.ui.widget.js"></script>
+    <script type="text/javascript" src="`support`js/jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="`support`js/metro.min.js"></script>
+    <script type="text/javascript" src="`support`js/spin.js"></script>
+
+    <!--<script type="text/javascript" src="`support`metroui/js/metro-tab-control.js"></script>-->
+
+    <link rel="stylesheet" type="text/css" href="`support`jstree/libs/themes/default/style.min.css" />
+    <script type="text/javascript" src="`support`jstree/jstree.js"></script>
+    <script type="text/javascript" src="`.ModImg()`js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="`support`js/builder.js"></script>
+
+    <script type="text/javascript" src="`.ModImg()`js/heyoffline.js"></script>
+    <link rel="stylesheet" type="text/css" href="`support`css/builder.css" />
+    <script src="`support`ace/ace.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
+
+        var builder;
+
+        var spinOpt = {
+            lines: 17, // The number of lines to draw
+            length: 8, // The length of each line
+            width: 2, // The line thickness
+            radius: 18, // The radius of the inner circle
+            corners: 1, // Corner roundness (0..1)
+            rotate: 50, // The rotation offset
+            direction: 1, // 1: clockwise, -1: counterclockwise
+            color: '#000', // #rgb or #rrggbb or array of colors
+            speed: 1.2, // Rounds per second
+            trail: 64, // Afterglow percentage
+            shadow: true, // Whether to render a shadow
+            hwaccel: true, // Whether to use hardware acceleration
+            className: 'spinner', // The CSS class to assign to the spinner
+            zIndex: 2e9, // The z-index (defaults to 2000000000)
+            //top: 'auto', // Top position relative to parent in px
+            //left: 'auto' // Left position relative to parent in px
+        };               
+
+        $(function () {                        
+            builder = $.builder({ baseurl: '`otcsUrl`',supporturl:'`support`' });
+
+            $('#executecommand').on('click', function () {
+                var feature = $('.feature.active');
+                if (feature.length == 0)
+                    return;
+                var spinner;
+                var url = '`otcsUrl`?func=wb.cmd.feature.RunScript&parent=' + feature.data().parent + '&name=' + feature.data().name;
+                $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    beforeSend: function () {
+                        var target = document.getElementById('editor');
+                        spinner = new Spinner(spinOpt).spin(target);
+                    }
+                }).done(function (data) {
+                    if(data != undefined)
+                        if(data.ok)
+                        {
+                            $.Notify({
+                                caption: "Success",
+                                content: 'Script executed successfully.',
+                                style: { 'background': 'green', 'color': '#fff' }
+                            });
+                        }
+                }).complete(function () {
+                    spinner.stop();
+                })
+            });
+
+            $('#lockospacecommand').on('click', function () {
+                console.log('Locking OSpcae');
+                var feature = $('.feature.active');
+                if (feature.length == 0)
+                    return;
+                var baseUrl = '`otcsUrl`';
+                var node = $('#modules').jstree(true).get_node(feature.data().parent)
+                var ospace = node.parents[node.parents.length - 3];                
+                var ospacenode = $('#modules').jstree(true).get_node(ospace);
+                var url = baseUrl + '?func=wb.cmd.ospace.lock&ospace=' + ospacenode.original.ospace;
+                $.getJSON(url, function (data) {
+                    console.log(data);
+                    if (data != undefined) {
+                        if (data.ok) {
+                            $.Notify({
+                                caption: "Success",
+                                content: 'OSpace Locked Succesfully.',
+                                style: { 'background': 'green', 'color': '#fff' }
+                            });                            
+                            ospacenode.original.isLocked = true;
+                            ospacenode.original.icon = '';
+                            console.log(ospacenode);
+                        }
+                        else {
+                            $.Notify({
+                                caption: "Error",
+                                content: data.errMsg,
+                                style: { 'background': 'red', 'color': '#fff' }
+                            });
+                        }
+                    }
+                })
+            });
+
+            $('#unlockospacecommand').on('click', function () {
+                console.log('Unlocking OSpcae');
+                var feature = $('.feature.active');
+                if (feature.length == 0)
+                    return;
+                var baseUrl = '`otcsUrl`';
+                var node = $('#modules').jstree(true).get_node(feature.data().parent)
+                var ospace = node.parents[node.parents.length - 3];
+                var ospacenode = $('#modules').jstree(true).get_node(ospace);
+                
+            });
+                          
+            var url = '`otcsUrl`?func=CheckSession';
+            $.getJSON(url, function (data) {                
+                if (data != undefined) {
+                    if (data.OK) {                        
+                        console.log(data);
+                        //$('#logincommand').attr('data-hint', '<span>User Name : ' + data.User + '</span><br/><span>ID : ' + data.ID + '</span><br/><span>Expiration Date : ' + data.expirationDate + '</span>');
+                        $('#logincommand').attr('data-hint', '<div style="float:left;"><span>User Name</span><br/><span>ID</span><br/><span>Expiration Date</span></div><div style="float:right;"><span>&nbsp;:&nbsp;' + data.User + '</span><br/><span>&nbsp;:&nbsp;' + data.ID + '</span><br/><span>&nbsp;:&nbsp;' + data.expirationDate + '</span></div>');
+                        //$('#logincommand').attr('data-hint', '<table><tr><td>User Name : </td><td>' + data.User + '</td></tr><tr><td>ID : ' + data.ID + '</td></tr><td>Expiration Date : </td><td>' + data.expirationDate + '</td></tr></table>');
+                    }
+                }
+            })            
+
+            $('#savecommand').on('click', function () {
+                var tab = $('#builder-tabs .tabs li.active a');
+                var tabId = tab.attr('href');
+                $.each(builder.editors, function (i, val) {
+                    if (val.id == tabId.substring(1, tabId.length)) {
+                        var req = tab.data();
+                        req.newValue =val.editor.getSession().getValue(); 
+                        req.func = 'wb.OverwriteFeature';
+
+                        console.log(req);
+                        var url = '`otcsUrl`';
+                        $.post(url, req, function (data, status, jqXHR) {
+                            if (!data.ok) {
+                                if (data.errors != undefined) {
+                                    $.each(data.errors, function (i, value) {
+                                        $.Notify({
+                                            caption: value.Level,
+                                            content: value.Text + '<br/>Line : ' + value.Range,
+                                            style: { 'background': 'red', 'color': '#fff' },
+                                            timeout: 5000
+                                        });
+                                    });
+                                }
+                                else {
+                                    $.Notify({
+                                        caption: 'Error',
+                                        content: data.errMsg,
+                                        style: { 'background': 'red', 'color': '#fff' },
+                                        timeout: 5000
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                $.Notify({
+                                    caption: "Success",
+                                    content: 'Code compiled successfully and saved.',
+                                    style: { 'background': 'green', 'color': '#fff' }
+                                });
+                            }
+                        });            
+                    }
+                });
+            });
+        });
+
+
+
+        $(function () {
+            var buttonset = $("#filterfeature").buttonset();
+            var filters = $.cookie('WebBuilderFilters');
+            if (filters != undefined) {
+                filters = unescape(filters).split(',');
+                if (filters != "" && filters.length > 0) {
+                    $('#filterfeature button').removeClass('active');
+                    $.each(filters, function (i, value) {
+                        $('#filterfeature button[data-filter="' + value + '"]').addClass('active');
+                    });
+                }
+            }
+            buttonset.on('click', function () {
+                builder.filterFeatures(buttonset);
+            });
+
+           
+            $('#command_share').on('click', function () {
+                var offset = {
+                    X: $(this).width - 0,
+                    Y: 0//$(this).offset().top + $(this).height() + 40
+                };
+                $.Dialog({
+                    overlay: false,
+                    shadow: true,
+                    flat: true,
+                    height: '100px',
+                    width: '300px',
+                    title: 'Share',
+                    padding: 10,
+                    draggable: true,
+                    onShow: function (_dialog) {
+                        var content = '<div class="input-control text"><input id="shareurltxt" data-state="info" type="text" name="url" value = "' + builder.currentUrl + '"></div><a href="' + builder.currentUrl + '">Test</a></div>'
+                        $.Dialog.content(content);
+                        $('#shareurltxt').select();
+                    },
+                    sysButtons: { btnClose: false }
+                });
+                $('.window').css({ 'position': 'fixed', 'top': offset.Y, 'left': '50%' });
+            });
+        });
+
+    </script>
+</head>
+<body class="metro">
+    ;;call <htmlprefix + 'navigation_bar.html'>(builderUrl);
+        <div class="container wrapper">
+            <div id="leftsidebar" class="buildersidebar">
+                <div id="modules">
+                </div>
+            </div>
+            <div id="editor">
+                <div id="builder-tabs" class="tab-control" data-role="tab-control">
+                    <ul class="tabs"></ul>
+                    <div class="frames">
+                    </div>
+                </div>
+            </div>
+            <div id="rightsidebar" class="buildersidebar">
+                <div class="filterbox">
+                    <div id="filterfeature" class="button-set" data-role="button-set">
+                        <button id="feature_script" data-filter="script"><img alt="new" src="`.ModImg()`images/file_object16_b24.png" /><span style="vertical-align: middle;margin-left: 5px;">Script Only</span></button>
+                        <button class="active" id="feature_new" data-filter="0"><img alt="new" src="`.ModImg()`images/feature_new16_b24.png" /></button>
+                        <button class="active" id="feature_overriden" data-filter="1"><img alt="new" src="`.ModImg()`images/feature_overridden16_b24.png" /></button>
+                        <button class="active" id="feature_inherited" data-filter="2"><img alt="new" src="`.ModImg()`images/feature_inherited16_b24.png" /></button>
+                    </div>
+                </div>
+                <div id="featuresbox">
+                    <ul id="features"></ul>
+                </div>
+            </div>
+        </div>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" type="text/css" href="`.ModStylesPrefix()`css/reset.css" />
+        <link rel="stylesheet" type="text/css" href="`.ModStylesPrefix()`css/elusive-webfont.css" />
+        <link rel="stylesheet" type="text/css" href="`.ModImg()`jstree/libs/themes/default/style.min.css" />
+        <script type="text/javascript" src="`.ModImg()`js/jquery-1.11.0.min.js"></script>
+        <script type="text/javascript" src="`.ModImg()`js/heyoffline.js"></script>
+        <script type="text/javascript" src="`.ModImg()`jstree/jstree.js"></script>
+
+        <!--jQuery UI-->
+                    <!--<link rel="stylesheet" href="`.ModImg()`/jMetro/css/jquery-ui.css">
+                    <script src="`.ModImg()`/jquery-ui/ui/jquery-ui.js"></script>-->
+        <link rel="stylesheet" href="`.ModImg()`/jquery-ui/themes/base/jquery.ui.all.css">
+        <script src="`.ModImg()`/jquery-ui/ui/jquery-ui.js"></script>
+
+        <!--timeout-dialog-->
+                    <!--<script type="text/javascript" src="`.ModImg()`/timeout-dialog/js/timeout-dialog.js"></script>
+                    <link rel="stylesheet" href="`.ModImg()`/timeout-dialog/css/index.css" type="text/css" media="screen, projection" />
+                    <link rel="stylesheet" href="`.ModImg()`/timeout-dialog/css/timeout-dialog.css" type="text/css" media="screen, projection" />-->
+        <script src="`.ModImg()`ace/ace.js" type="text/javascript" charset="utf-8"></script>
+        <link rel="stylesheet" type="text/css" href="`.ModStylesPrefix()`css/style.css" />
+
+        <title>Content Server Web Builder</title>
+
+        <script>
+
+
+
+
+            var isInitialized = false;
+            var queryString;
+            var editors = [];
+
+            function filterFeatures() {
+                var filters = [];
+                $('#filterfeature').find('label.ui-state-active').each(function () {
+                    var type = $(this).attr("data");
+                    filters.push(type);
+                });
+
+                $('#features li a').each(function () {
+                    var a = $(this);
+                    if (filters.length > 0) {
+                        var index = $.inArray(a.attr('inheritance'), filters);
+                        if (index > -1) {
+                            a.parent().show();
+                        }
+                        else {
+                            a.parent().hide();
+                        }
+                        index = $.inArray('script', filters);
+                        if (index > -1) {
+                            if (parseInt(a.attr('type')) != -3) {
+                                a.parent().hide();
+                            }
+                            else {
+                                if (a.parent().is(':visible'))
+                                    a.parent().show();
+                            }
+                        }
+                    }
+                    else {
+                        a.parent().hide();
+                    }
+                });
+            }
+
+            $(function () {
+                /*$.get('`.URL()`?func=webbuilder.timeoutdialogprefs&timeout&canuse', function (data) {
+                if (data.canuse) {
+                $.timeoutDialog({
+                timeout: 65,//data.timeout, 
+                countdown: 60, 
+                logout_redirect_url: 'https://github.com/rigoneri/timeout-dialog.js'
+                }); 
+                }
+                });*/
+                //UI Init
+                $("#filterfeature").buttonset();
+                var tabs = $('#tabs').tabs();
+
+                tabs.delegate("span.ui-icon-close", "click", function () {
+                    var panelId = $(this).closest("li").remove().attr("aria-controls");
+                    $("#" + panelId).remove();
+                    tabs.tabs("refresh");
+                });
+
+                //Check the default buttons
+                $('#feature_new,#feature_inherited,#feature_overriden').attr("checked", true);
+                $("#filterfeature").buttonset("refresh");
+
+                $('#filterfeature').click(function () {
+                    filterFeatures();
+                });
+
+
+                $(document).on('click', '.feature', function () {
+                    var parent = $(this).attr('parent');
+                    var name = $(this).attr('name');
+                    var id = $(this).attr('id');
+                    highligthFeature(name);
+                    getFeatureValue(parent, name, id);
+                    var node = $('#modules').jstree(true).get_node(parent);
+                    createURL(node, name);
+
+                });
+
+                $('#modules').on('changed.jstree', function (e, data) {
+                    createURL(data.node);
+                    if (data.node.original.type == 'object') {
+                        getFeatures(data.node.original.objref);
+                        filterFeatures();
+                    }
+                }).on('select_node.jstree', function (e, data) {
+                    console.log(data);
+                    if (!isInitialized) {
+                        if (data.node.original.type === 'object') {
+                            if (queryChildren.length === 0) {
+                                getFeatures(data.node.original.objref);
+                            }
+                            var feature = $.QueryString['feature'];
+                            if (feature != undefined) {
+                                getFeatureValue(data.node.original.objref, feature);
+                                jsTreeScroll(data.node);
+                            }
+                        }
+                    }
+                }).on('loaded.jstree', function () {
+                    var module = $.QueryString['module'];
+                    if (module != undefined) {
+                        $.jstree.reference('#modules').open_node(module);
+                    }
+                }).on('after_open.jstree', function (e, data) {
+                    createURL(data.node);
+                    if (!isInitialized) {
+                        if (data.node.original.type === 'module') {
+                            var ospace = $.QueryString['ospace'];
+                            if (typeof ospace != 'undefined') {
+                                $.jstree.reference('#modules').open_node(ospace);
+                                return;
+                            }
+                            isInitialized = true;
+                            jsTreeScroll(data.node);
+                        }
+
+                        if (data.node.original.type === 'ospace') {
+                            var orphan = $.QueryString['orphan'];
+                            if (typeof orphan != 'undefined') {
+                                if (queryChildren.length === 0)
+                                    $.jstree.reference('#modules').select_node(orphan, true);
+                                if (!hasFeature()) {
+                                    isInitialized = true;
+                                    jsTreeScroll(data.node);
+                                }
+                                else {
+                                    $.jstree.reference('#modules').open_node(orphan);
+                                }
+                                return;
+                            }
+                        }
+
+                        if (data.node.original.type === 'object') {
+                            var child = $.QueryString[queryChildren.shift()];
+                            //length after shifting..
+                            if (queryChildren.length === 0) {
+                                if (typeof child != 'undefined') {
+                                    $.jstree.reference('#modules').select_node(child, true);
+                                    if (!hasFeature()) {
+                                        isInitialized = true;
+                                        jsTreeScroll(data.node);
+                                    }
+                                }
+                            }
+                            else {
+                                $.jstree.reference('#modules').open_node(child);
+                            }
+                            return;
+                        }
+
+                    }
+                }).jstree({
+                    //'plugins' : ['contextmenu'],
+                    'core': {
+                        'multiple': false,
+                        'data': {
+                            'url': function (node) {
+                                if (node.id === '#')
+                                    return '`.Url()`?func=admin.GetModules';
+                                switch (node.original.type) {
+                                    case 'module':
+                                        return '`.Url()`?func=admin.GetOSpaces&module=' + node.text;
+                                        break;
+                                    case 'ospace':
+                                        return '`.Url()`?func=admin.GetOrphans&ospace=' + node.original.ospace;
+                                        break;
+                                    case 'object':
+                                        return '`.Url()`?func=admin.GetChildren&objref=' + node.original.objref;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            //Plugin for getting url parameters
+            (function ($) {
+                $.QueryString = (function (a) {
+                    if (a == "") return {};
+                    var b = {};
+                    for (var i = 0; i < a.length; ++i) {
+                        var p = a[i].split('=');
+                        if (p.length != 2) continue;
+                        b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+                    }
+                    return b;
+                })(window.location.search.substr(1).split('&'))
+            })(jQuery);
+
+            function GetQueryStringParams(sParam) {
+                var sPageURL = window.location.search.substring(1);
+                var sURLVariables = sPageURL.split('&');
+                console.log(sURLVariables);
+                for (var i = 0; i < sURLVariables.length; i++) {
+                    var sParameterName = sURLVariables[i].split('=');
+                    if (sParameterName[0] == sParam) {
+                        return sParameterName[1];
+                    }
+                }
+                return;
+            }
+
+            function highligthFeature(feature) {
+                $('#features li a').each(function () {
+                    var name = $(this).attr('name');
+                    if (name === feature) {
+                        $(this).addClass('active');
+                    }
+                    else {
+                        if ($(this).hasClass('active'))
+                            $(this).removeClass('active');
+                    }
+                });
+            }
+
+            function getFeatures(objref) {
+                var url = '`.Url()`?func=admin.getfeatures&objref=' + objref;
+                $.getJSON(url, function (data) {
+                    var items = [];
+                    $('#features').empty();
+                    $.each(data, function (index, value) {
+                        $('#features').append('<li><a class="feature" style="background-image:url(' + value.icon + ');" parent = ' + value.parent + ' name = "' + value.name + '" inheritance = ' + value.inheritance + ' type=' + value.featureType + ' id=' + value.id + '>' + value.name + '</a></li>');
+                    });
+                    if (!isInitialized) {
+                        if (hasFeature()) {
+                            var feature = $.QueryString['feature'];
+                            highligthFeature(feature);
+                            featureScroll(feature);
+                        }
+                    }
+                });
+            }
+
+            function isTabExists(fId) {
+                return $('#tabs ul li[aria-controls="' + fId + '"').length != 0;
+            }
+
+            function selectTab(fId) {
+                var index = $('#tabs ul').find('li[aria-controls="' + fId + '"]').index();
+                $("#tabs").tabs("option", "active", index);
+            }
+
+            function createBooleanDiv(value) {
+                var div = $('<div id="boolean">');
+                var truechecked, falsechecked;
+                if (value) {
+                    truechecked = "checked";
+                    falsechecked = "";
+                }
+                else {
+                    truechecked = "";
+                    falsechecked = "checked";
+                }
+                div.append('<p><input type="radio" name="boolean" ' + truechecked + ' id="booleantrue" value="true"/><span>True</span></p>');
+                div.append('<p><input type="radio" name="boolean" ' + falsechecked + ' id="booleanfalse" value="false"/><span>False</span></p>');
+                console.log(div);
+                return div;
+            }
+
+            function addTab(fId, data) {
+
+                $('#tabs ul').append('<li><a href="#' + fId + '">' + data.name + '</a><span class="ui-icon ui-icon-close" role="presentation">Remove Tab</span></li>');
+                var ele = $('<div id="' + fId + '"></div');
+                $('#tabs').append(ele);
+                $('#tabs').tabs('refresh');
+                selectTab(fId);
+
+                switch (data.type) {
+                    case 5: //boolean                        
+                        $('#tabs').find('div#' + fId).append(createBooleanDiv(data.value));
+                        break;
+                    default:
+                        var editor = createNewEditor(fId);
+                        if (data.value === null) {
+                            editor.setValue("");
+                        }
+                        else {
+                            editor.setValue(data.value, -1);
+                            editor.resize();
+                        }
+                        break;
+                }
+            }
+
+            function getFeatureValue(parent, name, id) {
+                var tabId = "tab_" + id;
+                if (isTabExists(tabId)) {
+                    selectTab(tabId);
+                }
+                else {
+                    var url = '`.Url()`?func=admin.getfeaturevalue&parent=' + parent + '&name=' + name;
+                    $.getJSON(url, function (data) {
+                        addTab(tabId, data);
+                    });
+                }
+            }
+
+            function jsTreeScroll(node) {
+                var id;
+                var siblingCount = $('#' + node.id).parent().children('li').length;
+                if (siblingCount > 15)
+                    id = data.node.parent;
+                else
+                    id = node.parents[node.parents.length - 2];
+                var container = $('#leftsidebar');
+                var scrollTo = $('#' + id);
+                container.animate({
+                    scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+                });
+            }
+
+            function featureScroll(feature) {
+                var element = $('#' + feature);
+                var container = $('#featuresbox');
+                var ul = element.closest('ul');
+                var focusCount = Math.floor(container.height() / element.parent().height());
+                var fCount = ul.children('li').length;
+                var scrollTo;
+                if (fCount > focusCount) {
+                    var index = ul.children('li').index(element.parent());
+                    if (index > focusCount)
+                        scrollTo = ul.children('li').eq(index - 5);
+                    else
+                        screenTo = element.parent();
+                }
+                else {
+                    scrollTo = element.parent();
+                }
+
+                container.animate({
+                    scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+                });
+            }
+
+            $.jstree.defaults.core.data = true;
+            function createNewEditor(id) {
+                var editor = ace.edit(id);
+                editor.setTheme("ace/theme/textmate");
+                editor.getSession().setMode("ace/mode/oscript");
+                return editor;
+            }
+
+            function createURL(node, feature) {
+
+                var query = {
+                    'func': 'admin.webbuilder'
+                };
+
+                var path = $('#modules').jstree(true).get_path(node, false, true);
+
+                switch (path.length) {
+                    case 0:
+                        break;
+                    case 1:
+                        query.module = path[0];
+                        break;
+                    case 2:
+                        query.module = path[0];
+                        query.ospace = path[1];
+                        break;
+                    case 3:
+                        query.module = path[0];
+                        query.ospace = path[1];
+                        query.orphan = path[2];
+                        break;
+                    case 4:
+                        query.module = path[0];
+                        query.ospace = path[1];
+                        query.orphan = path[2];
+                        query.child_1 = path[3];
+                        break;
+                    default:
+                        query.module = path[0];
+                        query.ospace = path[1];
+                        query.orphan = path[2];
+                        for (i = 3; i < path.length; i++) {
+                            var temp = 'child_' + parseInt(i - 2);
+                            console.log(temp);
+                            query[temp] = path[i];
+                        }
+                        break;
+                }
+
+                if (feature != undefined) {
+                    query.feature = feature;
+                }
+
+                queryString = $.param(query);
+
+                queryString = '`.URL()`?' + queryString;
+                console.log(queryString);
+            }
+
+            function getChildrenFromQuery() {
+                var sPageURL = window.location.search.substring(1);
+                var sURLVariables = sPageURL.split('&');
+                var queryChildren = new Array();
+                $.each(sURLVariables, function (i, data) {
+                    var sParameterName = data.split('=')[0];
+                    if (sParameterName.substring(0, 5) == 'child')
+                        queryChildren.push(sParameterName);
+                });
+                return queryChildren;
+            }
+
+            function hasFeature() {
+                var f = $.QueryString['feature'];
+                if (typeof f === undefined) {
+                    return false;
+                }
+                else
+                    return true;
+            }
+
+            var queryChildren = getChildrenFromQuery();
+
+
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="branding">
+                <p id="name"><a title="Web Builder" href="#" id="logo">Web Builder</a></p>
+            </div>
+            <div id="actions">
+                <ul class="actionCont collapsed">
+                    <li class="actionItem" style="display: none;">
+                        <a class="aiButton" id="edit" title="Edit" href="#"><span class="icon-caret-right"></span>Edit</a>
+                    </li>
+
+
+
+                    <li class="actionItem">
+                        <a class="aiButton" id="savenew" title="Save new Fiddle (CTRL + S)" href="#save"><span class="icon-pencil"></span>Save</a>
+                    </li>
+
+
+
+                    <li class="actionItem">
+                        <a class="aiButton" id="tidy" title="Re-indent messy code" href="#tidy"><span class="icon-broom"></span>TidyUp</a>
+                    </li>
+                    <li class="actionItem">
+                        <a class="aiButton" id="jslint" title="Run JSHint on the code" href="#jshint"><span class="icon-ok"></span>JSHint</a>
+                    </li>
+                    <li class="actionItem">
+                        <a class="aiButton" id="showjscode" title="Show JavaScript code" href="#showjs"><span class="icon-pencil"></span>Show JS</a>
+                    </li>
+                    <li class="actionItem">
+                        <a class="aiButton" id="share" title="" href="javascript:document.location=queryString"><span class="icon-group"></span>Share</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="wrapper">
+            <div id="leftsidebar" class="sidebar">
+                <div id="modules">
+                </div>
+            </div>
+            <div id="editor">                                    
+                <div id="tabs">
+                    <ul>
+                    </ul>
+                </div>
+            </div>
+            <div id="rightsidebar" class="sidebar">
+                <div id="filterfeature">
+                    <input type="checkbox" id="feature_script" /><label data="script" for="feature_script"><img alt="new" src="`.ModImg()`images/file_object16_b24.png" /></label>
+                    <input type="checkbox" id="feature_new" /><label data="0" for="feature_new"><img alt="new" src="`.ModImg()`images/feature_new16_b24.png" /></label>
+                    <input type="checkbox" id="feature_overriden" /><label data="1" for="feature_overriden"><img alt="new" src="`.ModImg()`images/feature_overridden16_b24.png" /></label>
+                    <input type="checkbox" id="feature_inherited" /><label data="2" for="feature_inherited"><img alt="new" src="`.ModImg()`images/feature_inherited16_b24.png" /></label>
+                </div>
+                <div id="featuresbox">
+                    <ul id="features">
+                    </ul>
+                </div>
+            </div>
+            <div class="cleaner">&nbsp;</div>
+        </div>
+        <div id="overlay">&nbsp;</div>
+    </body>
+</html>

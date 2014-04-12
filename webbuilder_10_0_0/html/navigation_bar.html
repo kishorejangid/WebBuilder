@@ -1,0 +1,40 @@
+;;webscript navigation_bar(String builderUrl)
+<div class="navigation-bar">
+    <div class="navigation-bar-content container">
+        <a href="`builderUrl`" class="element"><span class="icon-grid-view"></span> Content Server Web Builder <sup>10.0</sup></a>
+        <span class="element-divider"></span>
+
+        
+        <ul class="element-menu">
+            <!--<li>
+                <a class="dropdown-toggle" href="#">OSpace</a>
+                <ul class="dropdown-menu" data-role="dropdown">
+                    <li class="disabled"><a href="#">New</a></li>
+                    <li><a href="#" class="">Open</a></li>
+                    <li><a href="#" class="">Close</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" id="lockospacecommand" class="">Lock OSpace</a></li>
+                    <li><a href="#" id="unlockospacecommand" class="">Unlock OSpace</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Export OSpace</a></li>
+                </ul>
+            </li>-->
+            <li><a class="element" id="savecommand" style="display:none;"  href="#"><span class="icon-floppy">&nbsp;</span>Save</a></li>
+            <li><a class="element" id="editcommand" style="display:none;" href="#"><span class="icon-pencil">&nbsp;</span>Edit</a></li>
+            <li><a class="element" id="executecommand" style="display:none;" href="#"><span class="icon-play">&nbsp;</span>Run Script</a></li>            
+        </ul>
+
+        <div class="no-tablet-portrait no-phone">
+            <!--<a title="Nuget.org" href="https://www.nuget.org/packages/Metro.UI.CSS/" class="element place-right"><span class="icon-box-add"></span></a>-->
+            <!--<span class="element-divider place-right"></span>-->
+            <a id="logincommand" data-hint="" data-hint-position="left" title="Login Info" href="#" class="element place-right"><span class="icon-user"></span></a>
+            <span class="element-divider place-right"></span>
+            <a id="command_share" title="Share" href="#" class="element place-right"><span class="icon-share"></span>&nbsp;Share</a>
+            <span class="element-divider place-right"></span>
+            <!--<div class="element place-right" title="GitHub Stars"><span class="icon-star"></span> <span class="github-watchers">0</span></div>
+            <span class="element-divider place-right"></span>
+            <div class="element place-right" title="GitHub Forks"><span class="icon-share-2"></span> <span class="github-forks">0</span></div>-->
+        </div>
+    </div>
+</div>
+;;end

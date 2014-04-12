@@ -1,0 +1,224 @@
+.wrapper {
+    position: absolute;
+    top: 45px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background:#eee;
+}
+
+.navigation-bar {
+    position: inherit;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 45px;
+}
+
+.buildersidebar {
+    position: inherit;
+    top: 0;
+    bottom: 0;
+    font-size: 11px;
+    background-color: #fff;
+    color: #444;
+    width: 250px;
+}
+
+.asspinner{
+    position:relative;
+    display:table;
+
+}
+
+#leftsidebar {
+    left: 0;
+    height: 100%;    
+    border-right: solid 1px #1ba1e2;
+    width:280px;
+}
+
+#modules {
+    width: 100%;
+    height:100%;
+    overflow-y: auto;
+    overflow-x: hidden;    
+}
+
+    #modules ul {
+        margin-left: 0;
+        padding-left: 0;
+        font-size: 11px;
+        line-height: none;
+        letter-spacing: 0.02em;
+    }
+
+#rightsidebar {
+    right: 0;
+    border-left: solid 1px #1ba1e2;
+}
+
+    #rightsidebar .filterbox {
+        padding: 3px;
+        height: 34px;
+        border-bottom: solid 1px #1ba1e2;
+    }
+
+    #rightsidebar .button-set {
+        display: table;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+        #rightsidebar .button-set button {
+            padding: 4px 6px;
+            font-size: 11px;
+            border: solid 1px #d9d9d9;
+            background-color: transparent;
+        }
+
+            #rightsidebar .button-set button.active {
+                background: #1ba1e2;
+                border: solid 1px #1ba1e2;
+            }
+
+    #rightsidebar #featuresbox {
+        position: absolute;
+        top: 34px;
+        bottom: 0;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+#features {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+    #features > li {
+        display: block;
+    }
+
+    #features li a {
+        display: block;
+        position: relative;
+        padding: 5px 30px;
+        font-size: 11px;
+        line-height: 20px;
+        font-weight: 300;
+        color: #444;
+        outline: none;
+        background-repeat: no-repeat;
+        background-position: center left 10px;
+        border-bottom: dotted 1px #1ba1e2;
+    }
+
+        #features li a:hover {
+            cursor: pointer;
+            background-color: #1ba1e2;
+            color: #fff;
+        }
+
+        #features li a.active {
+            background-color: #1ba1e2;
+            color: #fff;
+        }
+
+#editor {
+    position: absolute;
+    top: 5px;
+    left: 285px;
+    right: 255px;
+    bottom: 5px;    
+}
+
+    #editor #builder-tabs .tabs > li > a {
+        padding: 2px 10px;
+    }
+
+    #editor #builder-tabs .tabs {
+        height: 38px;
+        overflow: hidden;
+    }
+
+
+    #editor #builder-tabs {        
+        height: 100%;
+    }
+
+        #editor #builder-tabs .frames {
+            position:absolute;
+            top:39px;
+            bottom:0;
+            left:0;
+            right:0;            
+        }
+
+#builder-tabs .frames .frame {
+    height:100%;    
+}
+
+#builder-tabs .frames .frame span,#builder-tabs .frames .frame p{    
+}
+
+#builder-tabs .tabs li a span.feature-parent {
+    vertical-align: middle;
+    display: block;
+    font-size: 9px;
+    padding: 0px;
+    line-height: 9px;
+    margin: 0px;
+    text-align: center;
+    color: #ddd;
+}
+
+#builder-tabs .tabs li a span.icon-cancel {
+    color: #e51400;
+    float: right;
+    padding: 0;
+    margin: 0;
+    margin-right: -8px;
+    font-size: 11px;
+}
+
+.ace_editor.fullScreen {
+    height: auto;
+    width: auto;
+    border: 0;
+    margin: 0;
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: white;
+    overflow: hidden;
+}
+.ace_editor span, .ace_editor p {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+.ace_cursor{
+    padding:0;
+    margin:0;
+}
+
+
+* {
+    outline: none;
+}
+
+a {
+    font-size: 11px;
+}
+
+
+.metro .vakata-context, .metro .jstree-contextmenu,.metro .jstree-default-contextmenu{
+    padding:2px;
+    margin-left:0px;
+}
+
+/*jsTree CSS Override*/
