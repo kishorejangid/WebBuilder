@@ -951,7 +951,10 @@ a {
 .metro div,
 .metro span,
 .metro p {
+  
+  /* Removing font style as this is effecting ace editor
   font-family: 'Segoe UI_', 'Open Sans', Verdana, Arial, Helvetica, sans-serif;
+  */
   font-weight: normal;
   font-style: normal;
 }
