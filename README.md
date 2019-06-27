@@ -23,6 +23,13 @@ Supported Browsers
 > - Google Chrome
 > - Mozilla Firefox
 
+If you try to install on Content Server > 10.0, make sure to update kernel dependency in the webbuilder.ini file
+
+```
+[dependencies]
+requires_1={'kernel',16,2}
+```
+
 Screen Shots Samples
 --------------------
 
